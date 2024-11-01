@@ -1,0 +1,41 @@
+1. Cây (Tree)
+Khái niệm: Cây là một cấu trúc dữ liệu phi tuyến tính, bao gồm một tập hợp các nút được liên kết với nhau theo dạng phân cấp. Cây có một nút gốc (root), từ đó các nút khác được phân nhánh ra.
+
+Cấu trúc:
+
+Nút (Node): Mỗi nút trong cây chứa một giá trị và tham chiếu đến các nút con.
+Nút gốc (Root): Nút đầu tiên trong cây, không có nút cha.
+Nút lá (Leaf): Nút không có nút con.
+Cạnh (Edge): Liên kết giữa các nút.
+Cấp độ (Level): Cấp độ của một nút được xác định bằng số cạnh từ nút gốc đến nút đó.
+Chiều cao cây (Height): Chiều cao của cây là độ dài lớn nhất của một đường đi từ nút gốc đến nút lá.
+Ứng dụng: Cây thường được sử dụng trong nhiều ứng dụng như tổ chức dữ liệu (hệ thống tệp), biểu diễn cấu trúc phân cấp (như cây thư mục), và trong các thuật toán tìm kiếm.
+
+2. Cây nhị phân (Binary Tree)
+Khái niệm: Cây nhị phân là một loại cây trong đó mỗi nút có tối đa hai nút con, thường được gọi là nút trái và nút phải.
+
+Cấu trúc:
+
+Nút: Mỗi nút chứa một giá trị và hai tham chiếu đến nút con trái và nút con phải.
+Nút con trái (Left Child): Nút con bên trái của một nút.
+Nút con phải (Right Child): Nút con bên phải của một nút.
+Cây nhị phân đầy (Full Binary Tree): Tất cả các nút đều có 0 hoặc 2 nút con.
+Cây nhị phân hoàn chỉnh (Complete Binary Tree): Tất cả các cấp trừ cấp cuối cùng đều đầy và các nút ở cấp cuối cùng được đặt từ trái sang phải.
+Cây nhị phân cân bằng (Balanced Binary Tree): Chiều cao của hai cây con trái và phải không chênh lệch quá 1.
+Ứng dụng: Cây nhị phân thường được sử dụng để tổ chức dữ liệu, trong các thuật toán tìm kiếm và trong biểu diễn các biểu thức toán học.
+
+3. Cây tìm kiếm nhị phân (Binary Search Tree - BST)
+Khái niệm: Cây tìm kiếm nhị phân là một loại cây nhị phân, trong đó các nút được sắp xếp theo quy tắc: giá trị của tất cả các nút con bên trái nhỏ hơn giá trị của nút cha, và giá trị của tất cả các nút con bên phải lớn hơn giá trị của nút cha.
+
+Cấu trúc:
+
+Nút: Mỗi nút trong BST chứa một giá trị, một tham chiếu đến nút con trái và một tham chiếu đến nút con phải.
+Quy tắc: Với mỗi nút, mọi giá trị ở cây con trái đều nhỏ hơn giá trị của nút đó, và mọi giá trị ở cây con phải đều lớn hơn.
+Hoạt động:
+
+Tìm kiếm (Search): Để tìm một giá trị trong BST, bắt đầu từ nút gốc, so sánh giá trị cần tìm với giá trị của nút hiện tại và tiếp tục tìm kiếm trong cây con trái hoặc cây con phải tùy thuộc vào kết quả so sánh.
+Chèn (Insert): Tương tự như tìm kiếm, bắt đầu từ nút gốc và tìm vị trí thích hợp để chèn nút mới theo quy tắc BST.
+Xóa (Delete): Có ba trường hợp: xóa nút lá (không có con), xóa nút có một con, và xóa nút có hai con (thay thế bằng giá trị lớn nhất từ cây con trái hoặc nhỏ nhất từ cây con phải).
+Ưu điểm: Cây tìm kiếm nhị phân cho phép tìm kiếm, chèn và xóa với độ phức tạp trung bình là O(log n) nếu cây được cân bằng.
+
+Nhược điểm: Nếu không duy trì tính cân bằng, độ phức tạp có thể trở thành O(n) trong trường hợp xấu nhất (ví dụ, nếu cây trở thành một danh sách liên kết).
