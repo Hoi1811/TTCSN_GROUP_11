@@ -1,4 +1,4 @@
-package module;
+package models;
 
 public class People {
     private int id;

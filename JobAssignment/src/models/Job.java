@@ -1,4 +1,4 @@
-package module;
+package models;
 
 public class Job {
     private int id;

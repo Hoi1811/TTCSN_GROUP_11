@@ -1,4 +1,4 @@
-package module;
+package models;
 
 public class Worker extends People{
     private String position;

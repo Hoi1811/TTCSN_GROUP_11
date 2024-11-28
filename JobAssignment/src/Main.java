@@ -1,7 +1,7 @@
-import module.AssignmentSolver;
-import module.ExcelReader;
-import module.Job;
-import module.Worker;
+import models.AssignmentSolver;
+import models.ExcelReader;
+import models.Job;
+import models.Worker;
 
 import java.io.IOException;
 import java.util.Arrays;
