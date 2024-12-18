@@ -8,8 +8,8 @@ import java.util.Scanner;
 
 public class                        Main {
     public static void main(String[] args) throws IOException {
-//        String filePath = "D:\\Downloads\\2024HAUI\\TTCSN\\TTCSN_GROUP_11\\Book1.xlsx";
-        String filePath = "D:\\Project\\Book1.xlsx";
+        String filePath = "D:\\Downloads\\2024HAUI\\TTCSN\\TTCSN_GROUP_11\\Book1.xlsx";
+//        String filePath = "D:\\Project\\Book1.xlsx";
         // Danh sách worker và job
         List<Worker> workers = Arrays.asList(
                 new Worker(1, "Worker A"),

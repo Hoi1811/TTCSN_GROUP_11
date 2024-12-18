@@ -8,112 +8,137 @@ public class AssignmentSolver {
         private Map<Worker, Job> assignment; // Kết quả ánh xạ Worker -> Job
         private int totalTime; // Tổng thời gian tối ưu cho tất cả Worker
 
-        // Constructor: Lưu kết quả ánh xạ và tổng thời gian
         public Result(Map<Worker, Job> assignment, int totalTime) {
             this.assignment = assignment;
             this.totalTime = totalTime;
         }
 
-        // Getter để lấy ánh xạ Worker -> Job
         public Map<Worker, Job> getAssignment() {
             return assignment;
         }
 
-        // Getter để lấy tổng thời gian tối ưu
         public int getTotalTime() {
             return totalTime;
         }
     }
 
-    /**
-     * Phương thức giải quyết bài toán phân công công việc (Assignment Problem)
-     * bằng cách sử dụng thuật toán Branch and Bound.
-     *
-     * @param timeMatrix Ma trận thời gian công việc (Worker ID -> Job ID -> Time)
-     * @param workers Danh sách Worker
-     * @param jobs Danh sách Job
-     * @return Kết quả chứa ánh xạ Worker -> Job và tổng thời gian tối ưu
-     */
+    // Lớp State đại diện cho trạng thái trong thuật toán Branch and Bound
+    private static class State implements Comparable<State> {
+        int level; // Số worker đã được gán công việc
+        int cost; // Tổng chi phí tạm thời
+        int lowerBound; // Ràng buộc dưới của trạng thái
+        boolean[] assignedJobs; // Trạng thái các công việc đã được gán
+        List<Integer> assignment; // Lưu công việc đã gán cho từng worker
+
+        public State(int level, int cost, int lowerBound, boolean[] assignedJobs, List<Integer> assignment) {
+            this.level = level;
+            this.cost = cost;
+            this.lowerBound = lowerBound;
+            this.assignedJobs = assignedJobs.clone();
+            this.assignment = new ArrayList<>(assignment);
+        }
+
+        @Override
+        public int compareTo(State other) {
+            return Integer.compare(this.lowerBound, other.lowerBound);
+        }
+    }
+
     public static Result branchAndBound(
             Map<Integer, Map<Integer, Integer>> timeMatrix,
             List<Worker> workers,
             List<Job> jobs
     ) {
-        int n = workers.size(); // Số lượng Worker
-        int m = jobs.size();   // Số lượng Job
-
-        // Kiểm tra nếu số Worker và Job không bằng nhau
-        if (n != m) {
+        int n = workers.size();
+        if (n != jobs.size()) {
             throw new IllegalArgumentException("Số lượng Worker và Job phải bằng nhau");
         }
 
-        // Chuyển đổi ma trận thời gian thành ma trận 2D `costMatrix`
-        int[][] costMatrix = new int[n][m];
+        // Chuyển đổi ma trận thời gian thành ma trận chi phí
+        int[][] costMatrix = new int[n][n];
         for (int i = 0; i < n; i++) {
-            int workerId = workers.get(i).getId(); // Lấy ID của Worker
-            Map<Integer, Integer> jobTimes = timeMatrix.get(workerId); // Lấy thời gian tương ứng Worker -> Job
-            for (int j = 0; j < m; j++) {
-                int jobId = jobs.get(j).getId(); // Lấy ID của Job
-                // Lấy thời gian từ `timeMatrix` hoặc gán giá trị vô cực nếu không tìm thấy
+            int workerId = workers.get(i).getId();
+            Map<Integer, Integer> jobTimes = timeMatrix.get(workerId);
+            for (int j = 0; j < n; j++) {
+                int jobId = jobs.get(j).getId();
                 costMatrix[i][j] = jobTimes.getOrDefault(jobId, Integer.MAX_VALUE);
             }
         }
 
-        // Gọi thuật toán Branch and Bound để tìm ánh xạ tối ưu
-        Map<Integer, Integer> assignment = branchAndBoundAlgorithm(costMatrix);
+        PriorityQueue<State> pq = new PriorityQueue<>();
+        boolean[] initialAssignedJobs = new boolean[n];
+        List<Integer> initialAssignment = new ArrayList<>(Collections.nCopies(n, -1));
 
-        // Tính tổng thời gian tối ưu và tạo ánh xạ Worker -> Job
-        int totalTime = 0;
-        Map<Worker, Job> resultAssignment = new HashMap<>();
-        for (Map.Entry<Integer, Integer> entry : assignment.entrySet()) {
-            int workerIdx = entry.getKey(); // Chỉ số Worker trong mảng
-            int jobIdx = entry.getValue(); // Chỉ số Job trong mảng
+        // Tính ràng buộc dưới ban đầu
+        int initialLowerBound = calculateLowerBound(costMatrix, initialAssignedJobs);
+        State initialState = new State(0, 0, initialLowerBound, initialAssignedJobs, initialAssignment);
+        pq.add(initialState);
 
-            // Cộng thời gian tối ưu
-            totalTime += costMatrix[workerIdx][jobIdx];
+        int optimalCost = Integer.MAX_VALUE;
+        List<Integer> optimalAssignment = null;
 
-            // Ánh xạ Worker -> Job
-            Worker worker = workers.get(workerIdx);
-            Job job = jobs.get(jobIdx);
-            resultAssignment.put(worker, job);
-        }
+        while (!pq.isEmpty()) {
+            State currentState = pq.poll();
+            // loại bỏ các nhanh co can duoi khong toi uu
+            if (currentState.lowerBound >= optimalCost) {
+                continue;
+            }
+            // kiem tra da xet het chua + cap nhat ket qua toi uu
+            if (currentState.level == n) {
+                optimalCost = currentState.cost;
+                optimalAssignment = currentState.assignment;
+                continue;
+            }
 
-        // Trả về kết quả gồm ánh xạ và tổng thời gian
-        return new Result(resultAssignment, totalTime);
-    }
+            for (int job = 0; job < n; job++) {
+                if (!currentState.assignedJobs[job]) {
+                    boolean[] nextAssignedJobs = currentState.assignedJobs.clone();
+                    nextAssignedJobs[job] = true;
+                    List<Integer> nextAssignment = new ArrayList<>(currentState.assignment);
+                    nextAssignment.set(currentState.level, job);
 
-    /**
-     * Thuật toán Branch and Bound đơn giản để phân công công việc tối ưu.
-     * Chọn công việc có chi phí nhỏ nhất cho mỗi Worker.
-     *
-     * @param costMatrix Ma trận chi phí (n x n)
-     * @return Ánh xạ Worker Index -> Job Index
-     */
-    private static Map<Integer, Integer> branchAndBoundAlgorithm(int[][] costMatrix) {
-        int n = costMatrix.length; // Số Worker/Job
-        Map<Integer, Integer> assignment = new HashMap<>(); // Lưu ánh xạ Worker -> Job
-        boolean[] assignedJobs = new boolean[n]; // Đánh dấu công việc đã được phân công
-
-        // Lặp qua từng Worker để gán công việc tối ưu
-        for (int workerIdx = 0; workerIdx < n; workerIdx++) {
-            int minCost = Integer.MAX_VALUE; // Chi phí nhỏ nhất cho Worker hiện tại
-            int bestJobIdx = -1; // Chỉ số Job có chi phí nhỏ nhất
-
-            // Tìm Job với chi phí nhỏ nhất chưa được gán
-            for (int jobIdx = 0; jobIdx < n; jobIdx++) {
-                if (!assignedJobs[jobIdx] && costMatrix[workerIdx][jobIdx] < minCost) {
-                    minCost = costMatrix[workerIdx][jobIdx];
-                    bestJobIdx = jobIdx;
+                    int nextCost = currentState.cost + costMatrix[currentState.level][job];
+                    // kiem tra ràng buộc dưới
+                    int nextLowerBound = calculateLowerBound(costMatrix, nextAssignedJobs) + nextCost;
+                    // nếu ràng buộc dưới nhỏ hơn giá trị tối ưu them vao hang doi
+                    if (nextLowerBound < optimalCost) {
+                        State nextState = new State(
+                                currentState.level + 1,
+                                nextCost,
+                                nextLowerBound,
+                                nextAssignedJobs,
+                                nextAssignment
+                        );
+                        pq.add(nextState);
+                    }
                 }
             }
-
-            // Gán Job cho Worker
-            if (bestJobIdx != -1) {
-                assignedJobs[bestJobIdx] = true; // Đánh dấu Job đã được gán
-                assignment.put(workerIdx, bestJobIdx); // Lưu ánh xạ Worker -> Job
-            }
         }
 
-        return assignment; // Trả về ánh xạ tối ưu
+        Map<Worker, Job> resultAssignment = new HashMap<>();
+        for (int i = 0; i < n; i++) {
+            resultAssignment.put(workers.get(i), jobs.get(optimalAssignment.get(i)));
+        }
+
+        return new Result(resultAssignment, optimalCost);
     }
+
+    private static int calculateLowerBound(int[][] costMatrix, boolean[] assignedJobs) {
+        int n = costMatrix.length;  // Số lượng công nhân
+        int lowerBound = 0;  // Khởi tạo giá trị ràng buộc dưới
+
+        // Duyệt qua từng công nhân
+        for (int i = 0; i < n; i++) {
+            int minCost = Integer.MAX_VALUE;  // Tìm chi phí nhỏ nhất cho công nhân i
+            for (int j = 0; j < n; j++) {
+                if (!assignedJobs[j]) {  // Nếu công việc j chưa được phân công
+                    minCost = Math.min(minCost, costMatrix[i][j]);  // Lấy chi phí nhỏ nhất
+                }
+            }
+            lowerBound += minCost;  // Cộng dồn vào ràng buộc dưới
+        }
+
+        return lowerBound;
+    }
+
 }
